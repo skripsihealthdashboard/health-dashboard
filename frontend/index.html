@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Monitoring Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #111827;
+      color: #f3f4f6;
+      padding: 18px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: #9ca3af;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: #1f2937;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+
+    .label {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .status-normal {
+      color: #22c55e;
+    }
+
+    .status-low {
+      color: #f59e0b;
+    }
+
+    .status-high {
+      color: #ef4444;
+    }
+
+    .finger-on {
+      color: #22c55e;
+    }
+
+    .finger-off {
+      color: #ef4444;
+    }
+
+    .chart-card {
+      margin-top: 18px;
+      background: #1f2937;
+      border-radius: 14px;
+      padding: 18px;
+      height: 360px;
+    }
+
+    .footer {
+      margin-top: 14px;
+      color: #9ca3af;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 640px) {
+      .value {
+        font-size: 22px;
+      }
+
+      .chart-card {
+        height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Health Monitoring Dashboard</h1>
+  <div class="subtitle">Realtime Firebase Monitoring</div>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="label">BPM</div>
+      <div class="value" id="bpm">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">AVG BPM</div>
+      <div class="value" id="avg_bpm">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">SpO2</div>
+      <div class="value" id="spo2">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Temperature</div>
+      <div class="value" id="temperature">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Finger</div>
+      <div class="value" id="finger">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Status</div>
+      <div class="value" id="status">-</div>
+    </div>
+
+  </div>
+
+  <div class="chart-card">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="footer">
+    Device: <span id="device">-</span><br>
+    Sensor timestamp: <span id="sensorTime">-</span><br>
+    Dashboard updated: <span id="updated">-</span>
+  </div>
+</div>
+
+<script>
+let chart;
+
+function initChart() {
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "AVG BPM",
+        data: [],
+        borderWidth: 2,
+        tension: 0.25
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#f3f4f6"
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#9ca3af"
+          }
+        },
+        y: {
+          ticks: {
+            color: "#9ca3af"
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateChart(value) {
+  const t = new Date().toLocaleTimeString();
+
+  chart.data.labels.push(t);
+  chart.data.datasets[0].data.push(value);
+
+  if (chart.data.labels.length > 20) {
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
+  }
+
+  chart.update();
+}
+
+function updateStatus(status) {
+  const el = document.getElementById("status");
+
+  el.textContent = status;
+  el.className = "value";
+
+  if (status === "NORMAL") el.classList.add("status-normal");
+  else if (status === "LOW") el.classList.add("status-low");
+  else if (status === "HIGH") el.classList.add("status-high");
+}
+
+function updateFinger(finger) {
+  const el = document.getElementById("finger");
+
+  el.textContent = finger ? "ON" : "OFF";
+  el.className = "value";
+
+  if (finger) el.classList.add("finger-on");
+  else el.classList.add("finger-off");
+}
+
+async function getData() {
+  try {
+    const res = await fetch("/api/dashboard");
+    const data = await res.json();
+
+    if (data.bpm === null || data.bpm === undefined) return;
+
+    document.getElementById("bpm").textContent = Number(data.bpm).toFixed(2);
+    document.getElementById("avg_bpm").textContent = Number(data.avg_bpm).toFixed(2);
+    document.getElementById("spo2").textContent = Number(data.spo2).toFixed(0);
+    document.getElementById("temperature").textContent = Number(data.temperature).toFixed(2);
+    document.getElementById("device").textContent = data.device_id || "-";
+    document.getElementById("sensorTime").textContent = data.timestamp || "-";
+    document.getElementById("updated").textContent = new Date().toLocaleTimeString();
+
+    updateStatus(data.status);
+    updateFinger(data.finger);
+    updateChart(Number(data.avg_bpm));
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+}
+
+initChart();
+getData();
+setInterval(getData, 3000);
+</script>
+
+</body>
+</html>
