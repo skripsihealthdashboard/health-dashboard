@@ -238,7 +238,7 @@ function updateFinger(finger) {
 
 async function getData() {
   try {
-    const res = await fetch("/api/dashboard");
+    const res = await fetch("https://health-dashboard-production-3bb5.up.railway.app/api/dashboard");
     const data = await res.json();
 
     if (data.bpm === null || data.bpm === undefined) return;

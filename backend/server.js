@@ -5,16 +5,19 @@ const db = require("./firebase");
 
 const app = express();
 
-// ❗ WAJIB untuk cloud deployment (Railway/Render)
+// ======================
+// PORT
+// ======================
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
 // ======================
-// STATIC FRONTEND
+// FRONTEND STATIC FILE
 // ======================
-const frontendPath = path.join(__dirname, "../frontend");
+const frontendPath = path.join(__dirname, "frontend");
+console.log("Frontend path:", frontendPath);
 
 app.use(express.static(frontendPath));
 
@@ -23,7 +26,7 @@ app.get("/", (req, res) => {
 });
 
 // ======================
-// STATE STORAGE (LATEST SENSOR DATA)
+// LATEST SENSOR STORAGE
 // ======================
 let latestData = {
   bpm: null,
@@ -39,20 +42,24 @@ let latestData = {
 };
 
 // ======================
-// BUSINESS LOGIC
+// STATUS DETECTION
 // ======================
 function detectBPMStatus(bpm) {
   if (!Number.isFinite(bpm)) return "NO DATA";
+
   if (bpm < 60) return "LOW";
   if (bpm > 100) return "HIGH";
+
   return "NORMAL";
 }
 
 // ======================
-// FIREBASE LISTENER (ROBUST VERSION)
+// FIREBASE REALTIME LISTENER
 // ======================
 try {
+
   db.ref("sensor/latest").on("value", (snapshot) => {
+
     const data = snapshot.val();
 
     if (!data) {
@@ -74,33 +81,41 @@ try {
     };
 
     console.log("[Firebase Update]", latestData);
+
   });
 
 } catch (err) {
+
   console.error("[Firebase Listener Error]", err);
+
 }
 
 // ======================
-// API ENDPOINT
+// DASHBOARD API
 // ======================
 app.get("/api/dashboard", (req, res) => {
-  res.json({
-    success: true,
-    data: latestData
-  });
+
+  res.json(latestData);
+
 });
 
-// optional: health check (penting untuk Railway monitoring)
+// ======================
+// HEALTH CHECK
+// ======================
 app.get("/api/health", (req, res) => {
+
   res.json({
     status: "OK",
     uptime: process.uptime()
   });
+
 });
 
 // ======================
-// SERVER START
+// START SERVER
 // ======================
 app.listen(PORT, "0.0.0.0", () => {
+
   console.log(`Server running on port ${PORT}`);
+
 });
