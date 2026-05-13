@@ -237,27 +237,70 @@ function updateFinger(finger) {
 }
 
 async function getData() {
+
   try {
-    const res = await fetch("https://health-dashboard-production-3bb5.up.railway.app/api/dashboard");
+
+    const res = await fetch("/api/dashboard");
     const data = await res.json();
+    console.log(data);
 
-    if (data.bpm === null || data.bpm === undefined) return;
+    // BPM
+    document.getElementById("bpm").textContent =
+      data.bpm !== null && data.bpm !== undefined
+        ? Number(data.bpm).toFixed(2)
+        : "--";
 
-    document.getElementById("bpm").textContent = Number(data.bpm).toFixed(2);
-    document.getElementById("avg_bpm").textContent = Number(data.avg_bpm).toFixed(2);
-    document.getElementById("spo2").textContent = Number(data.spo2).toFixed(0);
-    document.getElementById("temperature").textContent = Number(data.temperature).toFixed(2);
-    document.getElementById("device").textContent = data.device_id || "-";
-    document.getElementById("sensorTime").textContent = data.timestamp || "-";
-    document.getElementById("updated").textContent = new Date().toLocaleTimeString();
+    // AVG BPM
+    document.getElementById("avg_bpm").textContent =
+      data.avg_bpm !== null && data.avg_bpm !== undefined
+        ? Number(data.avg_bpm).toFixed(2)
+        : "--";
 
+    // SpO2
+    document.getElementById("spo2").textContent =
+      data.spo2 !== null && data.spo2 !== undefined
+        ? Number(data.spo2).toFixed(0)
+        : "--";
+
+    // Temperature
+    document.getElementById("temperature").textContent =
+      data.temperature !== null && data.temperature !== undefined
+        ? Number(data.temperature).toFixed(2)
+        : "--";
+
+    // Device
+    document.getElementById("device").textContent =
+      data.device_id || "-";
+
+    // Timestamp
+    document.getElementById("sensorTime").textContent =
+      data.timestamp || "-";
+
+    // Dashboard update time
+    document.getElementById("updated").textContent =
+      new Date().toLocaleTimeString();
+
+    // Status
     updateStatus(data.status);
+
+    // Finger
     updateFinger(data.finger);
-    updateChart(Number(data.avg_bpm));
+
+    // Chart update hanya jika avg_bpm valid
+    if (
+      data.avg_bpm !== null &&
+      data.avg_bpm !== undefined &&
+      !isNaN(data.avg_bpm)
+    ) {
+      updateChart(Number(data.avg_bpm));
+    }
 
   } catch (err) {
+
     console.error("Fetch error:", err);
+
   }
+
 }
 
 initChart();
