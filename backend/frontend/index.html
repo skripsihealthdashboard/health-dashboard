@@ -140,6 +140,31 @@
       }
 
     }
+  button {
+
+  margin-top: 16px;
+
+  padding: 10px 16px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #2563eb;
+
+  color: white;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+}
+
+button:hover {
+
+  opacity: 0.9;
+
+}  
 
   </style>
 </head>
@@ -219,6 +244,10 @@
   </div>
 
   <!-- FOOTER -->
+   <button id="exportBtn">
+  Export CSV
+  </button>
+
   <div class="footer">
 
     Device:
@@ -238,354 +267,80 @@
 
 </div>
 
-<script>
+<script type="module">
 
-let chart;
 
-// ======================
-// INIT CHART
-// ======================
-function initChart() {
 
-  const ctx =
-    document
-      .getElementById("chart")
-      .getContext("2d");
-
-  chart = new Chart(ctx, {
-
-    type: "line",
-
-    data: {
-
-      labels: [],
-
-      datasets: [
-
-        {
-
-          label: "AVG BPM",
-
-          data: [],
-
-          borderWidth: 2,
-
-          tension: 0.25
-
-        }
-
-      ]
-
-    },
-
-    options: {
-
-      responsive: true,
-
-      maintainAspectRatio: false,
-
-      animation: false,
-
-      plugins: {
-
-        legend: {
-
-          labels: {
-
-            color: "#f3f4f6"
-
-          }
-
-        }
-
-      },
-
-      scales: {
-
-        x: {
-
-          ticks: {
-
-            color: "#9ca3af"
-
-          }
-
-        },
-
-        y: {
-
-          ticks: {
-
-            color: "#9ca3af"
-
-          }
-
-        }
-
-      }
-
-    }
-
-  });
-
+import {
+  exportCSV
 }
+from "./js/csvExporter.js";
 
-// ======================
-// UPDATE CHART
-// ======================
-function updateChart(value) {
-
-  const t =
-    new Date().toLocaleTimeString();
-
-  chart.data.labels.push(t);
-
-  chart.data.datasets[0]
-    .data.push(value);
-
-  // limit chart data
-  if (chart.data.labels.length > 20) {
-
-    chart.data.labels.shift();
-
-    chart.data.datasets[0]
-      .data.shift();
-
-  }
-
-  chart.update();
-
+import {
+  getDashboardData,
+  getDeviceStatus
 }
+from "./js/firebaseService.js";
 
-// ======================
-// STATUS COLOR
-// ======================
-function updateStatus(status) {
-
-  const el =
-    document.getElementById("status");
-
-  el.textContent = status;
-
-  el.className = "value";
-
-  if (status === "NORMAL") {
-
-    el.classList.add("status-normal");
-
-  }
-
-  else if (status === "LOW") {
-
-    el.classList.add("status-low");
-
-  }
-
-  else if (status === "HIGH") {
-
-    el.classList.add("status-high");
-
-  }
-
+import {
+  initChart,
+  updateChart
 }
+from "./js/chartManager.js";
 
-// ======================
-// FINGER STATUS
-// ======================
-function updateFinger(finger) {
 
-  const el =
-    document.getElementById("finger");
-
-  el.textContent =
-    finger ? "ON" : "OFF";
-
-  el.className = "value";
-
-  if (finger) {
-
-    el.classList.add("finger-on");
-
-  }
-
-  else {
-
-    el.classList.add("finger-off");
-
-  }
-
+import {
+  updateBPM,
+  updateAvgBPM,
+  updateSpO2,
+  updateTemperature,
+  updateDevice,
+  updateSensorTime,
+  updateDashboardTime,
+  updateStatus,
+  updateFinger,
+  updateAlert,
+  updateDeviceConnection
 }
-
-// ======================
-// ALERT BOX
-// ======================
-// DITAMBAH
-// ======================
-function updateAlert(alert) {
-
-  const el =
-    document.getElementById("alertBox");
-
-  el.textContent =
-    "Alert: " + alert;
-
-  el.className = "alert-box";
-
-  if (alert === "NORMAL") {
-
-    el.classList.add("alert-normal");
-
-  }
-
-  else {
-
-    el.classList.add("alert-danger");
-
-  }
-
-}
-
-// ======================
-// DEVICE STATUS
-// ======================
-// DITAMBAH
-// ======================
-async function getDeviceStatus() {
-
-  try {
-
-    const res =
-      await fetch("/api/status");
-
-    const data =
-      await res.json();
-
-    const el =
-      document.getElementById(
-        "deviceStatus"
-      );
-
-    el.textContent =
-      data.online
-        ? "ONLINE"
-        : "OFFLINE";
-
-    el.className = "value";
-
-    if (data.online) {
-
-      el.classList.add("online");
-
-    }
-
-    else {
-
-      el.classList.add("offline");
-
-    }
-
-  }
-
-  catch (err) {
-
-    console.error(
-      "Status error:",
-      err
-    );
-
-  }
-
-}
+from "./js/uiManager.js";
 
 // ======================
 // FETCH DASHBOARD
 // ======================
+let bpmHistory = [];
 async function getData() {
 
   try {
 
-    const res =
-      await fetch("/api/dashboard");
-
     const data =
-      await res.json();
+      await getDashboardData();
 
     console.log(data);
 
-    // BPM
-    document.getElementById("bpm")
-      .textContent =
+    updateBPM(data.bpm);
 
-      data.bpm !== null &&
-      data.bpm !== undefined
+    updateAvgBPM(data.avg_bpm);
 
-      ? Number(data.bpm).toFixed(2)
+    updateSpO2(data.spo2);
 
-      : "--";
+    updateTemperature(
+      data.temperature
+    );
 
-    // AVG BPM
-    document.getElementById("avg_bpm")
-      .textContent =
+    updateDevice(data.device_id);
 
-      data.avg_bpm !== null &&
-      data.avg_bpm !== undefined
+    updateSensorTime(
+      data.timestamp
+    );
 
-      ? Number(data.avg_bpm).toFixed(2)
+    updateDashboardTime();
 
-      : "--";
-
-    // SPO2
-    document.getElementById("spo2")
-      .textContent =
-
-      data.spo2 !== null &&
-      data.spo2 !== undefined
-
-      ? Number(data.spo2).toFixed(0)
-
-      : "--";
-
-    // TEMPERATURE
-    document.getElementById("temperature")
-      .textContent =
-
-      data.temperature !== null &&
-      data.temperature !== undefined
-
-      ? Number(data.temperature).toFixed(2)
-
-      : "--";
-
-    // DEVICE
-    document.getElementById("device")
-      .textContent =
-
-      data.device_id || "-";
-
-    // SENSOR TIME
-    document.getElementById("sensorTime")
-      .textContent =
-
-      data.timestamp || "-";
-
-    // DASHBOARD UPDATE
-    document.getElementById("updated")
-      .textContent =
-
-      new Date()
-        .toLocaleTimeString();
-
-    // STATUS
     updateStatus(data.status);
 
-    // FINGER
     updateFinger(data.finger);
 
-    // ALERT
-    // DITAMBAH
     updateAlert(data.alert);
 
-    // UPDATE CHART
     if (
 
       data.avg_bpm !== null &&
@@ -596,9 +351,56 @@ async function getData() {
 
     ) {
 
-      updateChart(
-        Number(data.avg_bpm)
-      );
+const cleanValue =
+  removeSpike(
+
+    Number(data.avg_bpm),
+
+    bpmHistory.length > 0
+
+      ? bpmHistory[
+          bpmHistory.length - 1
+        ].avg_bpm
+
+      : null
+
+  );
+
+bpmHistory.push({
+
+  timestamp:
+    new Date()
+      .toLocaleString(),
+
+  avg_bpm: cleanValue
+
+});
+
+// limit history
+if (bpmHistory.length > 20) {
+
+  bpmHistory.shift();
+
+}
+
+// numeric only
+const bpmValues =
+  bpmHistory.map(
+    item => item.avg_bpm
+  );
+
+const smoothed =
+  movingAverage(
+    bpmValues,
+    5
+  );
+
+const latestSmooth =
+  smoothed[
+    smoothed.length - 1
+  ];
+
+updateChart(latestSmooth);
 
     }
 
@@ -616,20 +418,105 @@ async function getData() {
 }
 
 // ======================
+// DEVICE STATUS
+// ======================
+async function refreshDeviceStatus() {
+
+  try {
+
+    const data =
+      await getDeviceStatus();
+
+    updateDeviceConnection(
+      data.online
+    );
+
+  }
+
+  catch (err) {
+
+    console.error(
+      "Status error:",
+      err
+    );
+
+  }
+
+}
+
+// ======================
+// BASIC STATISTICS
+// ======================
+export function calculateStatistics(
+  data
+) {
+
+  if (
+    !Array.isArray(data) ||
+    data.length === 0
+  ) {
+
+    return null;
+
+  }
+
+  const min =
+    Math.min(...data);
+
+  const max =
+    Math.max(...data);
+
+  const sum =
+    data.reduce(
+      (a, b) => a + b,
+      0
+    );
+
+  const avg =
+    sum / data.length;
+
+  return {
+
+    min,
+
+    max,
+
+    average:
+      Number(avg.toFixed(2)),
+
+    count:
+      data.length
+
+  };
+
+}
+
+document
+  .getElementById("exportBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      exportCSV(bpmHistory);
+
+    }
+  );
+
+// ======================
 // START
 // ======================
 initChart();
 
 getData();
 
-getDeviceStatus();
+refreshDeviceStatus();
 
-// realtime refresh
 setInterval(getData, 3000);
 
-// realtime device status
-// DITAMBAH
-setInterval(getDeviceStatus, 5000);
+setInterval(
+  refreshDeviceStatus,
+  5000
+);
 
 </script>
 
