@@ -206,6 +206,12 @@ button:hover {
       <div class="value" id="temperature">-</div>
     </div>
 
+     <!-- Glucose -->
+    <div class="card">
+      <div class="label">Glucose</div>
+      <div class="value" id="glucose">-/div>
+    </div>
+
     <!-- FINGER -->
     <div class="card">
       <div class="label">Finger</div>
@@ -239,9 +245,17 @@ button:hover {
   <!-- CHART -->
   <div class="chart-card">
 
-    <canvas id="chart"></canvas>
+    <canvas id="BPMchart"></canvas>
 
   </div>
+
+  <div class="chart-card">
+
+  <canvas
+    id="glucoseChart"
+  ></canvas>
+
+</div>
 
   <!-- FOOTER -->
    <button id="exportBtn">
@@ -270,6 +284,10 @@ button:hover {
 <script type="module">
 
 
+import {
+  appState
+}
+from "./js/appState.js";
 
 import {
   exportCSV
@@ -284,15 +302,28 @@ from "./js/firebaseService.js";
 
 import {
   initChart,
-  updateChart
+  updateChart,
+  initGlucoseChart,
+  updateGlucoseChart
 }
 from "./js/chartManager.js";
 
+import {
+  movingAverage,
+  removeSpike
+}
+from "./js/filter.js";
+
+import {
+  calculateStatistics
+}
+from "./js/statisticsEngine.js";
 
 import {
   updateBPM,
   updateAvgBPM,
   updateSpO2,
+  updateGlucose,
   updateTemperature,
   updateDevice,
   updateSensorTime,
@@ -304,16 +335,28 @@ import {
 }
 from "./js/uiManager.js";
 
+import {
+  markDataReceived,
+  isDataStale
+}
+from "./js/reconnectHandler.js";
+
 // ======================
 // FETCH DASHBOARD
 // ======================
-let bpmHistory = [];
+appState.bpmHistory
 async function getData() {
 
   try {
 
     const data =
       await getDashboardData();
+      markDataReceived();
+
+      appState.latestData = data;
+
+      appState.lastUpdate =
+         Date.now();
 
     console.log(data);
 
@@ -322,6 +365,8 @@ async function getData() {
     updateAvgBPM(data.avg_bpm);
 
     updateSpO2(data.spo2);
+
+    updateGlucose(data.Glucose);
 
     updateTemperature(
       data.temperature
@@ -349,24 +394,39 @@ async function getData() {
 
       !isNaN(data.avg_bpm)
 
-    ) {
+    )
+    if (
+
+  data.glucose !== null &&
+
+  data.glucose !== undefined &&
+
+  !isNaN(data.glucose)
+
+) {
+
+  updateGlucoseChart(
+    Number(data.glucose)
+  );
+
+} {
 
 const cleanValue =
   removeSpike(
 
     Number(data.avg_bpm),
 
-    bpmHistory.length > 0
+    appState.bpmHistory.length > 0
 
-      ? bpmHistory[
-          bpmHistory.length - 1
+      ? appState.bpmHistory[
+          appState.bpmHistory.length - 1
         ].avg_bpm
 
       : null
 
   );
 
-bpmHistory.push({
+appState.bpmHistory.push({
 
   timestamp:
     new Date()
@@ -377,17 +437,26 @@ bpmHistory.push({
 });
 
 // limit history
-if (bpmHistory.length > 20) {
+if (appState.bpmHistory.length > 20) {
 
-  bpmHistory.shift();
+  appState.bpmHistory.shift();
 
 }
 
 // numeric only
 const bpmValues =
-  bpmHistory.map(
+  appState.bpmHistory.map(
     item => item.avg_bpm
   );
+  
+appState.statistics =
+  calculateStatistics(
+    bpmValues
+  );
+
+console.log(
+  appState.statistics
+);
 
 const smoothed =
   movingAverage(
@@ -444,52 +513,7 @@ async function refreshDeviceStatus() {
 
 }
 
-// ======================
-// BASIC STATISTICS
-// ======================
-export function calculateStatistics(
-  data
-) {
 
-  if (
-    !Array.isArray(data) ||
-    data.length === 0
-  ) {
-
-    return null;
-
-  }
-
-  const min =
-    Math.min(...data);
-
-  const max =
-    Math.max(...data);
-
-  const sum =
-    data.reduce(
-      (a, b) => a + b,
-      0
-    );
-
-  const avg =
-    sum / data.length;
-
-  return {
-
-    min,
-
-    max,
-
-    average:
-      Number(avg.toFixed(2)),
-
-    count:
-      data.length
-
-  };
-
-}
 
 document
   .getElementById("exportBtn")
@@ -497,7 +521,7 @@ document
     "click",
     () => {
 
-      exportCSV(bpmHistory);
+      exportCSV(appState.bpmHistory);
 
     }
   );
@@ -517,6 +541,29 @@ setInterval(
   refreshDeviceStatus,
   5000
 );
+
+setInterval(() => {
+
+  const stale =
+    isDataStale();
+
+  if (stale) {
+
+  updateDeviceConnection(
+    false
+  );
+
+  }
+
+  else {
+
+    updateDeviceConnection(
+      true
+    );
+
+  }
+
+}, 2000);
 
 </script>
 

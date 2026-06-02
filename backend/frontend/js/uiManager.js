@@ -68,6 +68,30 @@ export function updateTemperature(value) {
 
       : "--";
 
+// ======================
+//GLUCOSE
+// ======================
+
+export function updateGlucose(
+  value
+) {
+
+  document
+    .getElementById(
+      "glucose"
+    )
+    .textContent =
+
+    value !== null &&
+    value !== undefined
+
+    ? Number(value).toFixed(0)
+
+    : "--";
+
+}
+
+
 }
 
 // ======================

@@ -1,9 +1,14 @@
 const Chart = window.Chart;
 
-let chart;
+// ======================
+// CHART INSTANCES
+// ======================
+let bpmChart;
+
+let glucoseChart;
 
 // ======================
-// INIT CHART
+// INIT BPM CHART
 // ======================
 export function initChart() {
 
@@ -12,7 +17,7 @@ export function initChart() {
       .getElementById("chart")
       .getContext("2d");
 
-  chart = new Chart(ctx, {
+  bpmChart = new Chart(ctx, {
 
     type: "line",
 
@@ -53,27 +58,115 @@ export function initChart() {
 }
 
 // ======================
-// UPDATE CHART
+// UPDATE BPM CHART
 // ======================
-export function updateChart(value) {
+export function updateChart(
+  value
+) {
 
   const t =
-    new Date().toLocaleTimeString();
+    new Date()
+      .toLocaleTimeString();
 
-  chart.data.labels.push(t);
+  bpmChart.data.labels.push(t);
 
-  chart.data.datasets[0]
+  bpmChart.data.datasets[0]
     .data.push(value);
 
-  if (chart.data.labels.length > 20) {
+  if (
+    bpmChart.data.labels.length > 20
+  ) {
 
-    chart.data.labels.shift();
+    bpmChart.data.labels.shift();
 
-    chart.data.datasets[0]
+    bpmChart.data.datasets[0]
       .data.shift();
 
   }
 
-  chart.update();
+  bpmChart.update();
+
+}
+
+// ======================
+// INIT GLUCOSE CHART
+// ======================
+export function initGlucoseChart() {
+
+  const ctx =
+    document
+      .getElementById(
+        "glucoseChart"
+      )
+      .getContext("2d");
+
+  glucoseChart = new Chart(ctx, {
+
+    type: "line",
+
+    data: {
+
+      labels: [],
+
+      datasets: [
+
+        {
+
+          label: "Glucose (mg/dL)",
+
+          data: [],
+
+          borderWidth: 2,
+
+          tension: 0.25
+
+        }
+
+      ]
+
+    },
+
+    options: {
+
+      responsive: true,
+
+      maintainAspectRatio: false,
+
+      animation: false
+
+    }
+
+  });
+
+}
+
+// ======================
+// UPDATE GLUCOSE CHART
+// ======================
+export function updateGlucoseChart(
+  value
+) {
+
+  const t =
+    new Date()
+      .toLocaleTimeString();
+
+  glucoseChart.data.labels.push(t);
+
+  glucoseChart.data.datasets[0]
+    .data.push(value);
+
+  if (
+    glucoseChart.data.labels.length > 20
+  ) {
+
+    glucoseChart.data.labels.shift();
+
+    glucoseChart.data.datasets[0]
+      .data.shift();
+
+  }
+
+  glucoseChart.update();
 
 }
