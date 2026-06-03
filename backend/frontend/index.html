@@ -403,68 +403,66 @@ async function getData() {
 
 } {
 
-// const cleanValue =
-//   removeSpike(
+const cleanValue =
+  removeSpike(
 
-//     Number(data.avg_bpm),
+    Number(data.avg_bpm),
 
-//     appState.bpmHistory.length > 0
+    appState.bpmHistory.length > 0
 
-//       ? appState.bpmHistory[
-//           appState.bpmHistory.length - 1
-//         ].avg_bpm
+      ? appState.bpmHistory[
+          appState.bpmHistory.length - 1
+        ].avg_bpm
 
-//       : null
+      : null
 
-//   );
+  );
 
-// appState.bpmHistory.push({
+appState.bpmHistory.push({
 
-//   timestamp:
-//     new Date()
-//       .toLocaleString(),
+  timestamp:
+    new Date()
+      .toLocaleString(),
 
-//   avg_bpm: cleanValue
+  avg_bpm: cleanValue
 
-// });
+});
 
-// // limit history
-// if (appState.bpmHistory.length > 20) {
+// limit history
+if (appState.bpmHistory.length > 20) {
 
-//   appState.bpmHistory.shift();
+  appState.bpmHistory.shift();
 
-// }
+}
 
-// // numeric only
-// const bpmValues =
-//   appState.bpmHistory.map(
-//     item => item.avg_bpm
-//   );
+// numeric only
+const bpmValues =
+  appState.bpmHistory.map(
+    item => item.avg_bpm
+  );
   
-// appState.statistics =
-//   calculateStatistics(
-//     bpmValues
-//   );
+appState.statistics =
+  calculateStatistics(
+    bpmValues
+  );
 
-// console.log(
-//   appState.statistics
-// );
-
-// const smoothed =
-//   movingAverage(
-//     bpmValues,
-//     5
-//   );
-
-// const latestSmooth =
-//   smoothed[
-//     smoothed.length - 1
-//   ];
-
-// updateChart(latestSmooth);
-updateChart(
-  Number(data.avg_bpm)
+console.log(
+  appState.statistics
 );
+
+const smoothed =
+  movingAverage(
+    bpmValues,
+    5
+  );
+
+const latestSmooth =
+  smoothed[
+    smoothed.length - 1
+  ];
+
+updateBPMChart(latestSmooth);
+
     }
     
 

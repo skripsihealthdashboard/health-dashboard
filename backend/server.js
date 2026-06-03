@@ -110,6 +110,8 @@ db.ref("sensor/latest").on(
 
       temperature: safeNumber(data.temperature),
 
+      glucose: safeNumber(data.glucose),
+
       finger: !!data.finger,
 
       ir: safeNumber(data.ir),
