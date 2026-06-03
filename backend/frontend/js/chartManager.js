@@ -10,11 +10,11 @@ let glucoseChart;
 // ======================
 // INIT BPM CHART
 // ======================
-export function initChart() {
+export function initBPMChart() {
 
   const ctx =
     document
-      .getElementById("chart")
+      .getElementById("BPMchart")
       .getContext("2d");
 
   bpmChart = new Chart(ctx, {
@@ -60,7 +60,7 @@ export function initChart() {
 // ======================
 // UPDATE BPM CHART
 // ======================
-export function updateChart(
+export function updateBPMChart(
   value
 ) {
 
