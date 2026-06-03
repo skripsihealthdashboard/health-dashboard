@@ -261,11 +261,6 @@ button:hover {
 
     <br>
 
-    Sensor timestamp:
-    <span id="sensorTime">-</span>
-
-    <br>
-
     Dashboard updated:
     <span id="updated">-</span>
 
@@ -318,7 +313,6 @@ import {
   updateGlucose,
   updateTemperature,
   updateDevice,
-  updateSensorTime,
   updateDashboardTime,
   updateStatus,
   updateFinger,
@@ -365,10 +359,6 @@ async function getData() {
     );
 
     updateDevice(data.device_id);
-
-    updateSensorTime(
-      data.timestamp
-    );
 
     updateDashboardTime();
 

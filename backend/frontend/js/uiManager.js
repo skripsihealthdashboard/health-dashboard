@@ -105,29 +105,29 @@ export function updateDevice(device) {
 // ======================
 // SENSOR TIME
 // ======================
-export function updateSensorTime(
-  timestamp
-) {
+// export function updateSensorTime(
+//   timestamp
+// ) {
 
-  if (!timestamp) {
+//   if (!timestamp) {
 
-    document
-      .getElementById("sensorTime")
-      .textContent = "--";
+//     document
+//       .getElementById("sensorTime")
+//       .textContent = "--";
 
-    return;
+//     return;
 
-  }
+//   }
 
-  const formatted =
-    new Date(timestamp)
-      .toLocaleString();
+//   const formatted =
+//     new Date(timestamp)
+//       .toLocaleString();
 
-  document
-    .getElementById("sensorTime")
-    .textContent = formatted;
+//   document
+//     .getElementById("sensorTime")
+//     .textContent = formatted;
 
-}
+// }
 
 // ======================
 // DASHBOARD UPDATE
@@ -139,7 +139,25 @@ export function updateDashboardTime() {
     .textContent =
 
     new Date()
-      .toLocaleTimeString();
+      .toLocaleString(
+        "id-ID",
+        {
+
+          day: "2-digit",
+
+          month: "long",
+
+          year: "numeric",
+
+          hour: "2-digit",
+
+          minute: "2-digit",
+
+          second: "2-digit"
+
+        }
+
+      );
 
 }
 
