@@ -186,11 +186,13 @@ app.get("/api/status", (req, res) => {
 
   const now = Date.now();
 
-  const lastUpdate = latestData?.timestamp || 0;
+  const lastUpdate =
+  (latestData?.timestamp || 0)
+  * 1000;
 
   const diff = now - lastUpdate;
 
-  const online = diff < 10000;
+  const online = diff < 30000;
 
   res.json({
 
