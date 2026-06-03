@@ -68,6 +68,7 @@ export function updateTemperature(value) {
 
       : "--";
 
+}
 // ======================
 //GLUCOSE
 // ======================
@@ -88,10 +89,6 @@ export function updateGlucose(
     ? Number(value).toFixed(0)
 
     : "--";
-
-}
-
-
 }
 
 // ======================
