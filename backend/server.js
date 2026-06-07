@@ -32,6 +32,9 @@ app.get("/", (req, res) => {
 // ======================
 let latestData = null;
 
+// summary tracker
+let lastSummaryTimestamp = 0;
+
 // ======================
 // VALIDATION HELPERS
 // ======================
@@ -71,6 +74,33 @@ function calculateMedian(values) {
   }
 
   return sorted[middle];
+
+}
+
+// ======================
+// NEXT SUMMARY KEY
+// ======================
+async function getNextSummaryKey() {
+
+  const snapshot =
+    await db
+      .ref("sensor/summary")
+      .once("value");
+
+  const data =
+    snapshot.val();
+
+  if (!data) {
+
+    return "minute_001";
+
+  }
+
+  const count =
+    Object.keys(data).length + 1;
+
+  return `minute_${String(count)
+    .padStart(3, "0")}`;
 
 }
 
@@ -454,3 +484,192 @@ app.listen(PORT, "0.0.0.0", () => {
   );
 
 });
+
+// ======================
+// API SAVE SUMMARY
+// ======================
+app.get(
+  "/api/save-summary",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/history")
+          .limitToLast(20)
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.status(404)
+          .json({
+            error:
+              "No history data"
+          });
+
+      }
+
+      const rows =
+        Object.values(data);
+
+      if (rows.length < 20) {
+
+        return res.status(400)
+          .json({
+
+            error:
+              "Need 20 samples",
+
+            current:
+              rows.length
+
+          });
+
+      }
+
+      const newestTimestamp =
+        Math.max(
+          ...rows.map(
+            r =>
+              Number(
+                r.timestamp || 0
+              )
+          )
+        );
+
+      if (
+        newestTimestamp ===
+        lastSummaryTimestamp
+      ) {
+
+        return res.json({
+
+          message:
+            "Summary already created"
+
+        });
+
+      }
+
+      const bpmValues =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.avg_bpm
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const spo2Values =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.spo2
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const glucoseValues =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.glucose
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const tempValues =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.temperature
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const summary = {
+
+        median_bpm:
+          calculateMedian(
+            bpmValues
+          ),
+
+        median_spo2:
+          calculateMedian(
+            spo2Values
+          ),
+
+        median_glucose:
+          calculateMedian(
+            glucoseValues
+          ),
+
+        median_temperature:
+          calculateMedian(
+            tempValues
+          ),
+
+        sample_count:
+          rows.length,
+
+        created_at:
+          Date.now()
+
+      };
+
+      const key =
+        await getNextSummaryKey();
+
+      await db
+        .ref(
+          `sensor/summary/${key}`
+        )
+        .set(summary);
+
+      lastSummaryTimestamp =
+        newestTimestamp;
+
+      res.json({
+
+        success: true,
+
+        key,
+
+        summary
+
+      });
+
+    }
+
+    catch (err) {
+
+      console.error(err);
+
+      res.status(500)
+        .json({
+
+          error:
+            "Failed to save summary"
+
+        });
+
+    }
+
+  }
+);
