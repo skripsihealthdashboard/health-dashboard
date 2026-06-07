@@ -307,6 +307,143 @@ app.get("/api/history", async (req, res) => {
 
 });
 
+
+// ======================
+// API - GENERATE SUMMARY
+// ======================
+app.get(
+  "/api/generate-summary",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/history")
+          .limitToLast(20)
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.status(404)
+          .json({
+
+            error:
+              "No history data"
+
+          });
+
+      }
+
+      const rows =
+        Object.values(data);
+
+      const bpmValues =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.avg_bpm
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const spo2Values =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.spo2
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const glucoseValues =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.glucose
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const tempValues =
+        rows
+          .map(
+            r =>
+              safeNumber(
+                r.temperature
+              )
+          )
+          .filter(
+            v => v !== null
+          );
+
+      const summary = {
+
+        median_bpm:
+          calculateMedian(
+            bpmValues
+          ),
+
+        median_spo2:
+          calculateMedian(
+            spo2Values
+          ),
+
+        median_glucose:
+          calculateMedian(
+            glucoseValues
+          ),
+
+        median_temperature:
+          calculateMedian(
+            tempValues
+          ),
+
+        sample_count:
+          rows.length,
+
+        timestamp:
+          Date.now()
+
+      };
+
+      res.json(summary);
+
+    }
+
+    catch (err) {
+
+      console.error(
+        "[Summary Error]",
+        err
+      );
+
+      res.status(500)
+        .json({
+
+          error:
+            "Failed to generate summary"
+
+        });
+
+    }
+
+  }
+);
+
+
 // ======================
 // START SERVER
 // ======================
