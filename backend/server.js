@@ -485,6 +485,100 @@ app.listen(PORT, "0.0.0.0", () => {
 
 });
 
+setInterval(
+
+  autoGenerateSummary,
+
+  5000
+
+);
+
+async function autoGenerateSummary() {
+
+  try {
+
+    // ambil summary terakhir
+    const summarySnapshot =
+      await db
+        .ref("sensor/summary")
+        .once("value");
+
+    const summaries =
+      summarySnapshot.val() || {};
+
+    let lastTimestamp = 0;
+
+    if (
+      Object.keys(summaries).length > 0
+    ) {
+
+      const latestSummary =
+        Object.values(summaries)
+          .sort(
+            (a, b) =>
+              b.timestamp -
+              a.timestamp
+          )[0];
+
+      lastTimestamp =
+        latestSummary.timestamp || 0;
+
+    }
+
+    // ambil history
+    const historySnapshot =
+      await db
+        .ref("sensor/history")
+        .once("value");
+
+    const history =
+      historySnapshot.val();
+
+    if (!history) return;
+
+    const rows =
+      Object.values(history)
+        .filter(
+          row =>
+            Number(
+              row.timestamp || 0
+            ) > lastTimestamp
+        )
+        .sort(
+          (a, b) =>
+            a.timestamp -
+            b.timestamp
+        );
+
+    if (rows.length < 20) {
+
+      return;
+
+    }
+
+    const selectedRows =
+      rows.slice(0, 20);
+
+    console.log(
+      "[AUTO SUMMARY] 20 samples found"
+    );
+
+    // nanti lanjut hitung median
+    // dan save day_xxx
+
+  }
+
+  catch (err) {
+
+    console.error(
+      "[AUTO SUMMARY ERROR]",
+      err
+    );
+
+  }
+
+}
+
 // ======================
 // API SAVE SUMMARY
 // ======================
