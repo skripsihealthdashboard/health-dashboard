@@ -890,3 +890,228 @@ app.get(
 
   }
 );
+
+// ======================
+// API - TREND BPM
+// ======================
+app.get(
+  "/api/trend/bpm",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.json([]);
+
+      }
+
+      const result =
+        Object.values(data)
+
+          .sort(
+            (a, b) =>
+              a.sim_day -
+              b.sim_day
+          )
+
+          .map(item => ({
+
+            day:
+              item.sim_day,
+
+            value:
+              item.median_bpm
+
+          }));
+
+      res.json(result);
+
+    }
+
+    catch (err) {
+
+      console.error(err);
+
+      res.status(500).json({
+        error:
+          "Failed to load trend"
+      });
+
+    }
+
+  }
+);
+
+app.get(
+  "/api/trend/glucose",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.json([]);
+
+      }
+
+      const result =
+        Object.values(data)
+
+          .sort(
+            (a, b) =>
+              a.sim_day -
+              b.sim_day
+          )
+
+          .map(item => ({
+
+            day:
+              item.sim_day,
+
+            value:
+              item.median_glucose
+
+          }));
+
+      res.json(result);
+
+    }
+
+    catch (err) {
+
+      res.status(500).json({
+        error:
+          "Failed to load trend"
+      });
+
+    }
+
+  }
+);
+
+app.get(
+  "/api/trend/spo2",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.json([]);
+
+      }
+
+      const result =
+        Object.values(data)
+
+          .sort(
+            (a, b) =>
+              a.sim_day -
+              b.sim_day
+          )
+
+          .map(item => ({
+
+            day:
+              item.sim_day,
+
+            value:
+              item.median_spo2
+
+          }));
+
+      res.json(result);
+
+    }
+
+    catch (err) {
+
+      res.status(500).json({
+        error:
+          "Failed to load trend"
+      });
+
+    }
+
+  }
+);
+
+app.get(
+  "/api/trend/temperature",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.json([]);
+
+      }
+
+      const result =
+        Object.values(data)
+
+          .sort(
+            (a, b) =>
+              a.sim_day -
+              b.sim_day
+          )
+
+          .map(item => ({
+
+            day:
+              item.sim_day,
+
+            value:
+              item.median_temperature
+
+          }));
+
+      res.json(result);
+
+    }
+
+    catch (err) {
+
+      res.status(500).json({
+        error:
+          "Failed to load trend"
+      });
+
+    }
+
+  }
+);
