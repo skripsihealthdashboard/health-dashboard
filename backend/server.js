@@ -673,3 +673,70 @@ app.get(
 
   }
 );
+
+// ======================
+// API SUMMARY
+// ======================
+app.get(
+  "/api/summary",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.json([]);
+
+      }
+
+      const summaries =
+        Object.entries(data).map(
+
+          ([key, value]) => ({
+
+            key,
+
+            ...value
+
+          })
+
+        );
+
+      summaries.sort(
+
+        (a, b) =>
+          a.created_at -
+          b.created_at
+
+      );
+
+      res.json(summaries);
+
+    }
+
+    catch (err) {
+
+      console.error(
+        "[Summary Error]",
+        err
+      );
+
+      res.status(500).json({
+
+        error:
+          "Failed to fetch summary"
+
+      });
+
+    }
+
+  }
+);
