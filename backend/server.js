@@ -1115,3 +1115,117 @@ app.get(
 
   }
 );
+
+// ======================
+// API - LATEST SUMMARY
+// ======================
+app.get(
+  "/api/summary/latest",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val();
+
+      if (!data) {
+
+        return res.status(404)
+          .json({
+            error:
+              "No summary found"
+          });
+
+      }
+
+      const latest =
+        Object.values(data)
+
+          .sort(
+            (a, b) =>
+              b.sim_day -
+              a.sim_day
+          )[0];
+
+      res.json(latest);
+
+    }
+
+    catch (err) {
+
+      console.error(
+        "[SUMMARY LATEST ERROR]",
+        err
+      );
+
+      res.status(500)
+        .json({
+          error:
+            "Failed to load latest summary"
+        });
+
+    }
+
+  }
+);
+
+// ======================
+// API - SUMMARY INFO
+// ======================
+app.get(
+  "/api/summary/info",
+  async (req, res) => {
+
+    try {
+
+      const snapshot =
+        await db
+          .ref("sensor/summary")
+          .once("value");
+
+      const data =
+        snapshot.val() || {};
+
+      const summaries =
+        Object.values(data);
+
+      const totalSamples =
+        summaries.reduce(
+          (sum, item) =>
+            sum +
+            (item.sample_count || 0),
+          0
+        );
+
+      res.json({
+
+        total_days:
+          summaries.length,
+
+        total_samples:
+          totalSamples,
+
+        latest_day:
+          summaries.length
+
+      });
+
+    }
+
+    catch (err) {
+
+      res.status(500)
+        .json({
+          error:
+            "Failed to load summary info"
+        });
+
+    }
+
+  }
+);
