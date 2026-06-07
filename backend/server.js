@@ -579,194 +579,250 @@ async function autoGenerateSummary() {
 
 }
 
-// ======================
-// API SAVE SUMMARY
-// ======================
-app.get(
-  "/api/save-summary",
-  async (req, res) => {
+async function autoGenerateSummary() {
 
-    try {
+  try {
 
-      const snapshot =
-        await db
-          .ref("sensor/history")
-          .limitToLast(20)
-          .once("value");
+    // ======================
+    // AMBIL SUMMARY
+    // ======================
+    const summarySnapshot =
+      await db
+        .ref("sensor/summary")
+        .once("value");
 
-      const data =
-        snapshot.val();
+    const summaries =
+      summarySnapshot.val() || {};
 
-      if (!data) {
+    let lastTimestamp = 0;
 
-        return res.status(404)
-          .json({
-            error:
-              "No history data"
-          });
+    if (
+      Object.keys(summaries).length > 0
+    ) {
 
-      }
+      const latestSummary =
+        Object.values(summaries)
+          .sort(
+            (a, b) =>
+              b.timestamp -
+              a.timestamp
+          )[0];
 
-      const rows =
-        Object.values(data);
+      lastTimestamp =
+        latestSummary.timestamp || 0;
 
-      if (rows.length < 20) {
+    }
 
-        return res.status(400)
-          .json({
+    // ======================
+    // AMBIL HISTORY
+    // ======================
+    const historySnapshot =
+      await db
+        .ref("sensor/history")
+        .once("value");
 
-            error:
-              "Need 20 samples",
+    const history =
+      historySnapshot.val();
 
-            current:
-              rows.length
+    if (!history) {
 
-          });
+      return;
 
-      }
+    }
 
-      const newestTimestamp =
-        Math.max(
-          ...rows.map(
-            r =>
-              Number(
-                r.timestamp || 0
-              )
-          )
+    // ======================
+    // FILTER DATA BARU
+    // ======================
+    const rows =
+      Object.values(history)
+
+        .filter(
+          row =>
+            Number(
+              row.timestamp || 0
+            ) > lastTimestamp
+        )
+
+        .sort(
+          (a, b) =>
+            a.timestamp -
+            b.timestamp
         );
 
-      if (
-        newestTimestamp ===
-        lastSummaryTimestamp
-      ) {
+    if (rows.length < 20) {
 
-        return res.json({
+      console.log(
+        `[AUTO SUMMARY] ${rows.length}/20`
+      );
 
-          message:
-            "Summary already created"
+      return;
 
-        });
+    }
 
-      }
+    // ======================
+    // AMBIL 20 DATA PERTAMA
+    // ======================
+    const selectedRows =
+      rows.slice(0, 20);
 
-      const bpmValues =
-        rows
-          .map(
-            r =>
-              safeNumber(
-                r.avg_bpm
-              )
-          )
-          .filter(
-            v => v !== null
-          );
+    // ======================
+    // BPM
+    // ======================
+    const bpmValues =
+      selectedRows
 
-      const spo2Values =
-        rows
-          .map(
-            r =>
-              safeNumber(
-                r.spo2
-              )
-          )
-          .filter(
-            v => v !== null
-          );
-
-      const glucoseValues =
-        rows
-          .map(
-            r =>
-              safeNumber(
-                r.glucose
-              )
-          )
-          .filter(
-            v => v !== null
-          );
-
-      const tempValues =
-        rows
-          .map(
-            r =>
-              safeNumber(
-                r.temperature
-              )
-          )
-          .filter(
-            v => v !== null
-          );
-
-      const summary = {
-
-        median_bpm:
-          calculateMedian(
-            bpmValues
-          ),
-
-        median_spo2:
-          calculateMedian(
-            spo2Values
-          ),
-
-        median_glucose:
-          calculateMedian(
-            glucoseValues
-          ),
-
-        median_temperature:
-          calculateMedian(
-            tempValues
-          ),
-
-        sample_count:
-          rows.length,
-
-        created_at:
-          Date.now()
-
-      };
-
-      const key =
-        await getNextSummaryKey();
-
-      await db
-        .ref(
-          `sensor/summary/${key}`
+        .map(
+          r =>
+            Number(
+              r.avg_bpm
+            )
         )
-        .set(summary);
 
-      lastSummaryTimestamp =
-        newestTimestamp;
+        .filter(
+          v => !isNaN(v)
+        );
 
-      res.json({
+    // ======================
+    // SPO2
+    // ======================
+    const spo2Values =
+      selectedRows
 
-        success: true,
+        .map(
+          r =>
+            Number(
+              r.spo2
+            )
+        )
 
-        key,
+        .filter(
+          v => !isNaN(v)
+        );
 
-        summary
+    // ======================
+    // GLUCOSE
+    // ======================
+    const glucoseValues =
+      selectedRows
 
-      });
+        .map(
+          r =>
+            Number(
+              r.glucose
+            )
+        )
 
-    }
+        .filter(
+          v => !isNaN(v)
+        );
 
-    catch (err) {
+    // ======================
+    // TEMPERATURE
+    // ======================
+    const tempValues =
+      selectedRows
 
-      console.error(err);
+        .map(
+          r =>
+            Number(
+              r.temperature
+            )
+        )
 
-      res.status(500)
-        .json({
+        .filter(
+          v => !isNaN(v)
+        );
 
-          error:
-            "Failed to save summary"
+    // ======================
+    // NOMOR DAY
+    // ======================
+    const nextDay =
+      Object.keys(
+        summaries
+      ).length + 1;
 
-        });
+    const dayKey =
+      `day_${String(nextDay)
+        .padStart(3, "0")}`;
 
-    }
+    // ======================
+    // SUMMARY
+    // ======================
+    const summary = {
+
+      sim_day:
+        nextDay,
+
+      datetime:
+        new Date()
+          .toLocaleString(),
+
+      median_bpm:
+        calculateMedian(
+          bpmValues
+        ),
+
+      median_spo2:
+        calculateMedian(
+          spo2Values
+        ),
+
+      median_glucose:
+        calculateMedian(
+          glucoseValues
+        ),
+
+      median_temperature:
+        calculateMedian(
+          tempValues
+        ),
+
+      sample_count:
+        selectedRows.length,
+
+      first_sample_timestamp:
+        selectedRows[0]
+          .timestamp,
+
+      last_sample_timestamp:
+        selectedRows[
+          selectedRows.length - 1
+        ].timestamp,
+
+      timestamp:
+        Math.floor(
+          Date.now() / 1000
+        )
+
+    };
+
+    // ======================
+    // SIMPAN
+    // ======================
+    await db
+
+      .ref(
+        `sensor/summary/${dayKey}`
+      )
+
+      .set(summary);
+
+    console.log(
+      `[SUMMARY CREATED] ${dayKey}`
+    );
 
   }
-);
+
+  catch (err) {
+
+    console.error(
+      "[AUTO SUMMARY ERROR]",
+      err
+    );
+
+  }
+
+}
 
 // ======================
 // API SUMMARY
