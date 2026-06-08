@@ -3,9 +3,10 @@ const Chart = window.Chart;
 // ======================
 // CHART INSTANCES
 // ======================
-let bpmChart;
 
+let bpmChart;
 let glucoseChart;
+let trendBPMChart;
 
 // ======================
 // INIT BPM CHART
@@ -168,5 +169,83 @@ export function updateGlucoseChart(
   }
 
   glucoseChart.update();
+
+}
+
+// ======================
+// INIT TRENDBPM CHART
+// ======================
+
+export function initTrendBPMChart() {
+
+  const ctx =
+    document
+      .getElementById(
+        "trendBPMChart"
+      )
+      .getContext("2d");
+
+  trendBPMChart =
+    new Chart(ctx, {
+
+      type: "line",
+
+      data: {
+
+        labels: [],
+
+        datasets: [
+
+          {
+
+            label:
+              "Median BPM",
+
+            data: [],
+
+            borderWidth: 2,
+
+            tension: 0.25
+
+          }
+
+        ]
+
+      },
+
+      options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false
+
+      }
+
+    });
+
+}
+
+//======================
+// UPDATE TRENDBPM CHART
+// ======================
+
+export function updateTrendBPMChart(
+  trendData
+) {
+
+  trendBPMChart.data.labels =
+    trendData.map(
+      item =>
+        `Day ${item.day}`
+    );
+
+  trendBPMChart.data.datasets[0]
+    .data =
+    trendData.map(
+      item =>
+        item.value
+    );
+
+  trendBPMChart.update();
 
 }

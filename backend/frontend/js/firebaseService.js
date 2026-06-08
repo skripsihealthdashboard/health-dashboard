@@ -21,3 +21,19 @@ export async function getDeviceStatus() {
   return await res.json();
 
 }
+
+// ======================
+// TREND BPM
+// ======================
+
+export async function
+getBPMTrend() {
+
+  const response =
+    await fetch(
+      "/api/trend/bpm"
+    );
+
+  return await response.json();
+
+}

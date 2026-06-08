@@ -106,6 +106,23 @@
       height: 360px;
     }
 
+    /* ======================
+   CHART TITLE
+====================== */
+.chart-card h3 {
+
+  margin-top: 0;
+
+  margin-bottom: 12px;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  color: #f3f4f6;
+
+}
+
     .footer {
       margin-top: 14px;
       color: #9ca3af;
@@ -166,6 +183,19 @@ button:hover {
 
 }  
 
+/* ======================
+   CHART TITLE
+====================== */
+
+.chart-card h3 {
+
+  margin-top: 0;
+
+  margin-bottom: 12px;
+
+  font-size: 16px;
+
+}
   </style>
 </head>
 
@@ -249,6 +279,9 @@ button:hover {
   <div class="chart-card">
   <canvas id="glucoseChart"></canvas></div>
 
+  <div class="chart-card">
+  <canvas id="trendBPMChart"></canvas></div>
+
   <!-- FOOTER -->
    <button id="exportBtn">
   Export CSV
@@ -271,41 +304,61 @@ button:hover {
 <script type="module">
 
 
-import {
-  appState
-}
+// ======================
+// IMPORT - APP STATE
+// ======================
+import { appState }
 from "./js/appState.js";
 
-import {
-  exportCSV
-}
+// ======================
+// IMPORT - CSV EXPORT
+// ======================
+import { exportCSV }
 from "./js/csvExporter.js";
 
+// ======================
+// IMPORT - API SERVICE
+// ======================
 import {
   getDashboardData,
-  getDeviceStatus
+  getDeviceStatus,
+  getBPMTrend
 }
 from "./js/firebaseService.js";
 
+// ======================
+// IMPORT - CHART
+// ======================
 import {
   initBPMChart,
   updateBPMChart,
   initGlucoseChart,
-  updateGlucoseChart
+  updateGlucoseChart,
+  initTrendBPMChart,
+  updateTrendBPMChart
 }
 from "./js/chartManager.js";
 
+// ======================
+// IMPORT - FILTER
+// ======================
 import {
   movingAverage,
   removeSpike
 }
 from "./js/filter.js";
 
+// ======================
+// IMPORT - STATISTICS
+// ======================
 import {
   calculateStatistics
 }
 from "./js/statisticsEngine.js";
 
+// ======================
+// IMPORT - UI
+// ======================
 import {
   updateBPM,
   updateAvgBPM,
@@ -321,6 +374,9 @@ import {
 }
 from "./js/uiManager.js";
 
+// ======================
+// IMPORT - RECONNECT
+// ======================
 import {
   markDataReceived,
   isDataStale
@@ -330,7 +386,7 @@ from "./js/reconnectHandler.js";
 // ======================
 // FETCH DASHBOARD
 // ======================
-appState.bpmHistory
+
 async function getData() {
 
   try {
@@ -368,16 +424,10 @@ async function getData() {
 
     updateAlert(data.alert);
 
-    if (
-
-      data.avg_bpm !== null &&
-
-      data.avg_bpm !== undefined &&
-
-      !isNaN(data.avg_bpm)
-
-    )
-    if (
+    // ======================
+// GLUCOSE CHART
+// ======================
+if (
 
   data.glucose !== null &&
 
@@ -391,69 +441,84 @@ async function getData() {
     Number(data.glucose)
   );
 
-} {
-
-const cleanValue =
-  removeSpike(
-
-    Number(data.avg_bpm),
-
-    appState.bpmHistory.length > 0
-
-      ? appState.bpmHistory[
-          appState.bpmHistory.length - 1
-        ].avg_bpm
-
-      : null
-
-  );
-
-appState.bpmHistory.push({
-
-  timestamp:
-    new Date()
-      .toLocaleString(),
-
-  avg_bpm: cleanValue
-
-});
-
-// limit history
-if (appState.bpmHistory.length > 20) {
-
-  appState.bpmHistory.shift();
-
 }
 
-// numeric only
-const bpmValues =
-  appState.bpmHistory.map(
-    item => item.avg_bpm
+// ======================
+// BPM CHART
+// ======================
+if (
+
+  data.avg_bpm !== null &&
+
+  data.avg_bpm !== undefined &&
+
+  !isNaN(data.avg_bpm)
+
+) {
+
+  const cleanValue =
+    removeSpike(
+
+      Number(data.avg_bpm),
+
+      appState.bpmHistory.length > 0
+
+        ? appState.bpmHistory[
+            appState.bpmHistory.length - 1
+          ].avg_bpm
+
+        : null
+
+    );
+
+  appState.bpmHistory.push({
+
+    timestamp:
+      new Date()
+        .toLocaleString(),
+
+    avg_bpm:
+      cleanValue
+
+  });
+
+  // ======================
+  // LIMIT HISTORY
+  // ======================
+  if (
+    appState.bpmHistory.length > 20
+  ) {
+
+    appState.bpmHistory.shift();
+
+  }
+
+  const bpmValues =
+    appState.bpmHistory.map(
+      item => item.avg_bpm
+    );
+
+  appState.statistics =
+    calculateStatistics(
+      bpmValues
+    );
+
+  const smoothed =
+    movingAverage(
+      bpmValues,
+      5
+    );
+
+  const latestSmooth =
+    smoothed[
+      smoothed.length - 1
+    ];
+
+  updateBPMChart(
+    latestSmooth
   );
-  
-appState.statistics =
-  calculateStatistics(
-    bpmValues
-  );
 
-console.log(
-  appState.statistics
-);
-
-const smoothed =
-  movingAverage(
-    bpmValues,
-    5
-  );
-
-const latestSmooth =
-  smoothed[
-    smoothed.length - 1
-  ];
-
-updateBPMChart(latestSmooth);
-
-    }
+}
     
 
   }
@@ -494,6 +559,17 @@ async function refreshDeviceStatus() {
 
   }
 
+async function loadTrendBPM() {
+
+  const data =
+    await getBPMTrend();
+
+  updateTrendBPMChart(
+    data
+  );
+
+}  
+
 }
 
 
@@ -516,9 +592,13 @@ initBPMChart();
 
 initGlucoseChart();
 
+initTrendBPMChart();
+
 getData();
 
 refreshDeviceStatus();
+
+loadTrendBPM();
 
 setInterval(getData, 3000);
 
