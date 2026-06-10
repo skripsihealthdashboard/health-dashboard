@@ -892,7 +892,7 @@ app.get(
 );
 
 // ======================
-// API - TREND BPM
+// API - TREND
 // ======================
 app.get(
   "/api/trend/bpm",

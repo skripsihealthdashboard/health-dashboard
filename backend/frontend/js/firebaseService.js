@@ -37,3 +37,39 @@ getBPMTrend() {
   return await response.json();
 
 }
+
+export async function
+getSpO2Trend() {
+
+  const response =
+    await fetch(
+      "/api/trend/spo2"
+    );
+
+  return await response.json();
+
+}
+
+export async function
+getGlucoseTrend() {
+
+  const response =
+    await fetch(
+      "/api/trend/glucose"
+    );
+
+  return await response.json();
+
+}
+
+export async function
+getGlucoseTrend() {
+
+  const response =
+    await fetch(
+      "/api/trend/glucose"
+    );
+
+  return await response.json();
+
+}

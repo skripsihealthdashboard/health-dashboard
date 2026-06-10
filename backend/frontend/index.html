@@ -282,6 +282,39 @@ button:hover {
   <div class="chart-card">
   <canvas id="trendBPMChart"></canvas></div>
 
+  <!-- ======================
+     SPO2 TREND
+====================== -->
+<div class="chart-card">
+
+  <h3>SpO₂ Trend Summary</h3>
+
+  <canvas id="trendSpO2Chart"></canvas>
+
+</div>
+
+<!-- ======================
+     GLUCOSE TREND
+====================== -->
+<div class="chart-card">
+
+  <h3>Glucose Trend Summary</h3>
+
+  <canvas id="trendGlucoseChart"></canvas>
+
+</div>
+
+<!-- ======================
+     TEMPERATURE TREND
+====================== -->
+<div class="chart-card">
+
+  <h3>Temperature Trend Summary</h3>
+
+  <canvas id="trendTemperatureChart"></canvas>
+
+</div>
+
   <!-- FOOTER -->
    <button id="exportBtn">
   Export CSV
@@ -322,7 +355,10 @@ from "./js/csvExporter.js";
 import {
   getDashboardData,
   getDeviceStatus,
-  getBPMTrend
+  getBPMTrend,
+  getSpO2Trend,
+  getGlucoseTrend,
+  getTemperatureTrend
 }
 from "./js/firebaseService.js";
 
@@ -335,7 +371,13 @@ import {
   initGlucoseChart,
   updateGlucoseChart,
   initTrendBPMChart,
-  updateTrendBPMChart
+  updateTrendBPMChart,
+  initTrendSpO2Chart,
+  updateTrendSpO2Chart,
+  initTrendGlucoseChart,
+  updateTrendGlucoseChart,
+  initTrendTemperatureChart,
+  updateTrendTemperatureChart
 }
 from "./js/chartManager.js";
 
@@ -559,20 +601,100 @@ async function refreshDeviceStatus() {
 
   }
 
-async function loadTrendBPM() {
+async function loadTrendCharts() {
 
-  const data =
+  const bpm =
     await getBPMTrend();
 
   updateTrendBPMChart(
-    data
+    bpm
   );
 
-}  
+  const spo2 =
+    await getSpO2Trend();
+
+  updateTrendSpO2Chart(
+    spo2
+  );
+
+  const glucose =
+    await getGlucoseTrend();
+
+  updateTrendGlucoseChart(
+    glucose
+  );
+
+  const temperature =
+    await getTemperatureTrend();
+
+  updateTrendTemperatureChart(
+    temperature
+  );
 
 }
 
+// async function cleanupHistory() {
 
+//   try {
+
+//     const snapshot =
+//       await db
+//         .ref("sensor/history")
+//         .once("value");
+
+//     const data =
+//       snapshot.val();
+
+//     if (!data) return;
+
+//     const entries =
+//       Object.entries(data);
+
+//     if (
+//       entries.length <= 500
+//     ) {
+
+//       return;
+
+//     }
+
+//     const removeCount =
+//       entries.length - 500;
+
+//     const updates = {};
+
+//     entries
+
+//       .slice(0, removeCount)
+
+//       .forEach(([key]) => {
+
+//         updates[key] = null;
+
+//       });
+
+//     await db
+//       .ref("sensor/history")
+//       .update(updates);
+
+//     console.log(
+//       `[CLEANUP] removed ${removeCount} records`
+//     );
+
+//   }
+
+//   catch (err) {
+
+//     console.error(
+//       "[CLEANUP ERROR]",
+//       err
+//     );
+
+//   }
+
+// }
+
+}
 
 document
   .getElementById("exportBtn")
@@ -588,23 +710,38 @@ document
 // ======================
 // START
 // ======================
+
 initBPMChart();
 
 initGlucoseChart();
 
 initTrendBPMChart();
 
+initTrendSpO2Chart();
+
+initTrendGlucoseChart();
+
+initTrendTemperatureChart();
+
 getData();
 
 refreshDeviceStatus();
 
-loadTrendBPM();
+loadTrendCharts();
 
-setInterval(getData, 3000);
+setInterval(
+  getData,
+  3000
+);
 
 setInterval(
   refreshDeviceStatus,
   5000
+);
+
+setInterval(
+  loadTrendCharts,
+  15000
 );
 
 // setInterval(() => {
