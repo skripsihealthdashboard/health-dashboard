@@ -61,3 +61,15 @@ getGlucoseTrend() {
   return await response.json();
 
 }
+
+export async function
+getTemperatureTrend() {
+
+  const response =
+    await fetch(
+      "/api/trend/temperature"
+    );
+
+  return await response.json();
+
+}
