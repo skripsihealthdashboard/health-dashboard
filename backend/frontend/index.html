@@ -601,35 +601,53 @@ async function refreshDeviceStatus() {
 
   }
 
+}
+
+// ======================
+// LOAD TREND CHARTS
+// ======================
 async function loadTrendCharts() {
 
-  const bpm =
-    await getBPMTrend();
+  try {
 
-  updateTrendBPMChart(
-    bpm
-  );
+    const bpm =
+      await getBPMTrend();
 
-  const spo2 =
-    await getSpO2Trend();
+    updateTrendBPMChart(
+      bpm
+    );
 
-  updateTrendSpO2Chart(
-    spo2
-  );
+    const spo2 =
+      await getSpO2Trend();
 
-  const glucose =
-    await getGlucoseTrend();
+    updateTrendSpO2Chart(
+      spo2
+    );
 
-  updateTrendGlucoseChart(
-    glucose
-  );
+    const glucose =
+      await getGlucoseTrend();
 
-  const temperature =
-    await getTemperatureTrend();
+    updateTrendGlucoseChart(
+      glucose
+    );
 
-  updateTrendTemperatureChart(
-    temperature
-  );
+    const temperature =
+      await getTemperatureTrend();
+
+    updateTrendTemperatureChart(
+      temperature
+    );
+
+  }
+
+  catch (err) {
+
+    console.error(
+      "Trend error:",
+      err
+    );
+
+  }
 
 }
 
@@ -694,7 +712,6 @@ async function loadTrendCharts() {
 
 // }
 
-}
 
 document
   .getElementById("exportBtn")
