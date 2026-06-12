@@ -61,15 +61,3 @@ getGlucoseTrend() {
   return await response.json();
 
 }
-
-export async function
-getGlucoseTrend() {
-
-  const response =
-    await fetch(
-      "/api/trend/glucose"
-    );
-
-  return await response.json();
-
-}
