@@ -276,8 +276,9 @@ button:hover {
   <div class="chart-card">
   <canvas id="BPMchart"></canvas></div>
 
-  <div class="chart-card">
-  <canvas id="glucoseChart"></canvas></div>
+  <!-- ======================
+     BPM TREND
+====================== -->
 
   <div class="chart-card">
   <canvas id="trendBPMChart"></canvas></div>
@@ -316,10 +317,6 @@ button:hover {
 </div>
 
   <!-- FOOTER -->
-   <button id="exportBtn">
-  Export CSV
-  </button>
-
   <button id="exportSummaryBtn">
   Export Summary CSV
     </button>
@@ -350,8 +347,6 @@ from "./js/appState.js";
 // ======================
 // IMPORT - CSV EXPORT
 // ======================
-import { exportCSV }
-from "./js/csvExporter.js";
 
 import {
   exportSummaryCSV
@@ -375,10 +370,9 @@ from "./js/firebaseService.js";
 // IMPORT - CHART
 // ======================
 import {
+  
   initBPMChart,
   updateBPMChart,
-  initGlucoseChart,
-  updateGlucoseChart,
   initTrendBPMChart,
   updateTrendBPMChart,
   initTrendSpO2Chart,
@@ -660,78 +654,6 @@ async function loadTrendCharts() {
 
 }
 
-// async function cleanupHistory() {
-
-//   try {
-
-//     const snapshot =
-//       await db
-//         .ref("sensor/history")
-//         .once("value");
-
-//     const data =
-//       snapshot.val();
-
-//     if (!data) return;
-
-//     const entries =
-//       Object.entries(data);
-
-//     if (
-//       entries.length <= 500
-//     ) {
-
-//       return;
-
-//     }
-
-//     const removeCount =
-//       entries.length - 500;
-
-//     const updates = {};
-
-//     entries
-
-//       .slice(0, removeCount)
-
-//       .forEach(([key]) => {
-
-//         updates[key] = null;
-
-//       });
-
-//     await db
-//       .ref("sensor/history")
-//       .update(updates);
-
-//     console.log(
-//       `[CLEANUP] removed ${removeCount} records`
-//     );
-
-//   }
-
-//   catch (err) {
-
-//     console.error(
-//       "[CLEANUP ERROR]",
-//       err
-//     );
-
-//   }
-
-// }
-
-
-document
-  .getElementById("exportBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      exportCSV(appState.bpmHistory);
-
-    }
-  );
 
   document
   .getElementById(
