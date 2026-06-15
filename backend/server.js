@@ -234,9 +234,22 @@ db.ref("sensor/latest").on(
 
       timestamp: data.timestamp || Date.now(),
 
-      status: detectBPMStatus(
-        safeNumber(data.avg_bpm)
+      status:
+  detectMeasurementStatus({
+
+    finger: !!data.finger,
+
+    avg_bpm:
+      safeNumber(
+        data.avg_bpm
       ),
+
+    spo2:
+      safeNumber(
+        data.spo2
+      )
+
+  }),
 
       // ======================
       // DITAMBAH:
