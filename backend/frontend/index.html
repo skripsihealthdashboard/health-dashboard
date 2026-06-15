@@ -320,6 +320,10 @@ button:hover {
   Export CSV
   </button>
 
+  <button id="exportSummaryBtn">
+  Export Summary CSV
+    </button>
+
   <div class="footer">
 
     Device:
@@ -348,6 +352,11 @@ from "./js/appState.js";
 // ======================
 import { exportCSV }
 from "./js/csvExporter.js";
+
+import {
+  exportSummaryCSV
+}
+from "./js/summaryExporter.js";
 
 // ======================
 // IMPORT - API SERVICE
@@ -724,6 +733,15 @@ document
     }
   );
 
+  document
+  .getElementById(
+    "exportSummaryBtn"
+  )
+  .addEventListener(
+    "click",
+    exportSummaryCSV
+  );
+
 // ======================
 // START
 // ======================
@@ -761,28 +779,6 @@ setInterval(
   15000
 );
 
-// setInterval(() => {
-
-//   const stale =
-//     isDataStale();
-
-//   if (stale) {
-
-//   updateDeviceConnection(
-//     false
-//   );
-
-//   }
-
-//   else {
-
-//     updateDeviceConnection(
-//       true
-//     );
-
-//   }
-
-// }, 2000);
 
 </script>
 

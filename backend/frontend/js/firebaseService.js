@@ -73,3 +73,16 @@ getTemperatureTrend() {
   return await response.json();
 
 }
+
+export async function
+getSummaryData() {
+
+  const response =
+    await fetch(
+      "/api/summary"
+    );
+
+  return await response.json();
+
+}
+
