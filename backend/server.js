@@ -210,6 +210,48 @@ function detectMeasurementStatus(data) {
 }
 
 // ======================
+// HEALTH ALERT
+// ======================
+function detectHealthAlert(data) {
+
+  if (!data.finger) {
+
+    return "Letakkan jari pada sensor untuk memulai pengukuran.";
+
+  }
+
+  if (
+    Number.isFinite(data.spo2) &&
+    data.spo2 < 90
+  ) {
+
+    return "Saturasi oksigen terdeteksi rendah. Pastikan posisi sensor benar dan lakukan pengukuran ulang.";
+
+  }
+
+  if (
+    Number.isFinite(data.avg_bpm) &&
+    data.avg_bpm > 100
+  ) {
+
+    return "Detak jantung berada di atas rentang normal. Disarankan beristirahat sebelum pengukuran ulang.";
+
+  }
+
+  if (
+    Number.isFinite(data.avg_bpm) &&
+    data.avg_bpm < 60
+  ) {
+
+    return "Detak jantung berada di bawah rentang normal. Lakukan pengukuran ulang dalam kondisi rileks.";
+
+  }
+
+  return "Semua parameter berada dalam rentang normal.";
+
+}
+
+// ======================
 // FIREBASE LISTENER
 // ======================
 db.ref("sensor/latest").on(
@@ -263,9 +305,14 @@ db.ref("sensor/latest").on(
       // alert system
       // ======================
       alert: detectHealthAlert({
-        spo2: safeNumber(data.spo2),
-        avg_bpm: safeNumber(data.avg_bpm)
-      })
+
+      finger: !!data.finger,
+
+      spo2: safeNumber(data.spo2),
+
+      avg_bpm: safeNumber(data.avg_bpm)
+
+})
 
     };
 
