@@ -164,30 +164,42 @@ export function updateDashboardTime() {
 // ======================
 // STATUS
 // ======================
-export function updateStatus(status) {
+export function updateStatus(
+  status
+) {
 
   const el =
-    document.getElementById("status");
+    document.getElementById(
+      "status"
+    );
 
   el.textContent = status;
 
   el.className = "value";
 
-  if (status === "NORMAL") {
+  if (status === "VALID") {
 
-    el.classList.add("status-normal");
-
-  }
-
-  else if (status === "LOW") {
-
-    el.classList.add("status-low");
+    el.classList.add(
+      "status-normal"
+    );
 
   }
 
-  else if (status === "HIGH") {
+  else if (
+    status === "INVALID"
+  ) {
 
-    el.classList.add("status-high");
+    el.classList.add(
+      "status-low"
+    );
+
+  }
+
+  else {
+
+    el.classList.add(
+      "status-high"
+    );
 
   }
 
