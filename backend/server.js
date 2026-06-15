@@ -347,10 +347,23 @@ app.get(
 
     try {
 
+      // ======================
+      // GET METADATA
+      // ======================
+      const metadata =
+        await getMetadata();
+
+      console.log(
+        "[METADATA]",
+        metadata
+      );
+
+      // ======================
+      // GET HISTORY
+      // ======================
       const snapshot =
         await db
           .ref("sensor/history")
-          .limitToLast(20)
           .once("value");
 
       const data =
@@ -358,18 +371,90 @@ app.get(
 
       if (!data) {
 
-        return res.status(404)
-          .json({
+        return res.status(404).json({
 
-            error:
-              "No history data"
+          error:
+            "No history data"
 
-          });
+        });
 
       }
 
+      // ======================
+      // ALL HISTORY ENTRIES
+      // ======================
+      const entries =
+        Object.entries(data);
+
+      // ======================
+      // FILTER UNPROCESSED
+      // ======================
+      let unprocessed =
+        entries;
+
+      if (
+        metadata.last_processed_key
+      ) {
+
+        const index =
+          entries.findIndex(
+
+            ([key]) =>
+
+              key ===
+              metadata.last_processed_key
+
+          );
+
+        if (index >= 0) {
+
+          unprocessed =
+            entries.slice(
+              index + 1
+            );
+
+        }
+
+      }
+
+      // ======================
+      // TAKE NEXT 20 SAMPLES
+      // ======================
+      const batch =
+        unprocessed.slice(
+          0,
+          20
+        );
+
+      if (
+        batch.length < 20
+      ) {
+
+        return res.json({
+
+          message:
+            "Not enough samples",
+
+          current:
+            batch.length,
+
+          required:
+            20
+
+        });
+
+      }
+
+      // ======================
+      // EXTRACT VALUES
+      // ======================
       const rows =
-        Object.values(data);
+        batch.map(
+
+          ([key, value]) =>
+            value
+
+        );
 
       const bpmValues =
         rows
@@ -419,6 +504,9 @@ app.get(
             v => v !== null
           );
 
+      // ======================
+      // CALCULATE SUMMARY
+      // ======================
       const summary = {
 
         median_bpm:
@@ -449,7 +537,63 @@ app.get(
 
       };
 
-      res.json(summary);
+      // ======================
+      // NEXT DAY NUMBER
+      // ======================
+      const simDay =
+        metadata.last_sim_day + 1;
+
+      const dayKey =
+        `day_${String(simDay)
+          .padStart(
+            3,
+            "0"
+          )}`;
+
+      // ======================
+      // SAVE SUMMARY
+      // ======================
+      await db
+        .ref(
+          `sensor/summary/${dayKey}`
+        )
+        .set({
+
+          ...summary,
+
+          sim_day:
+            simDay
+
+        });
+
+      // ======================
+      // UPDATE METADATA
+      // ======================
+      const lastKey =
+        batch[
+          batch.length - 1
+        ][0];
+
+      await updateMetadata(
+
+        lastKey,
+
+        simDay
+
+      );
+
+      // ======================
+      // RESPONSE
+      // ======================
+      res.json({
+
+        success: true,
+
+        day: dayKey,
+
+        ...summary
+
+      });
 
     }
 
@@ -1229,3 +1373,43 @@ app.get(
 
   }
 );
+
+// ======================
+// GET METADATA
+// ======================
+async function getMetadata() {
+
+  const snapshot =
+    await db
+      .ref("sensor/metadata")
+      .once("value");
+
+  return snapshot.val() || {
+
+    last_processed_key: null,
+
+    last_sim_day: 0
+
+  };
+
+}
+
+// ======================
+// UPDATE METADATA
+// ======================
+async function updateMetadata(
+  key,
+  simDay
+) {
+
+  await db
+    .ref("sensor/metadata")
+    .set({
+
+      last_processed_key: key,
+
+      last_sim_day: simDay
+
+    });
+
+}
