@@ -178,27 +178,35 @@ function detectBPMStatus(bpm) {
 // ALERT LOGIC
 // ======================
 // DITAMBAH:
-// Letaknya setelah detectBPMStatus()
 // ======================
-function detectHealthAlert(data) {
+// MEASUREMENT STATUS
+// ======================
+function detectMeasurementStatus(data) {
 
-  if (!data) {
+  if (!data.finger) {
+
     return "NO DATA";
+
   }
 
-  if (data.spo2 !== null && data.spo2 < 90) {
-    return "LOW SPO2";
+  if (
+
+    !Number.isFinite(data.avg_bpm) ||
+
+    !Number.isFinite(data.spo2) ||
+
+    data.avg_bpm <= 0 ||
+
+    data.spo2 <= 0
+
+  ) {
+
+    return "INVALID";
+
   }
 
-  if (data.avg_bpm !== null && data.avg_bpm > 120) {
-    return "HIGH BPM";
-  }
+  return "VALID";
 
-  if (data.avg_bpm !== null && data.avg_bpm < 50) {
-    return "LOW BPM";
-  }
-
-  return "NORMAL";
 }
 
 // ======================
@@ -234,8 +242,7 @@ db.ref("sensor/latest").on(
 
       timestamp: data.timestamp || Date.now(),
 
-      status:
-  detectMeasurementStatus({
+      status:detectMeasurementStatus({
 
     finger: !!data.finger,
 
