@@ -78,6 +78,56 @@ function calculateMedian(values) {
 }
 
 // ======================
+// AVERAGE
+// ======================
+function calculateAverage(arr) {
+
+  if (arr.length === 0) {
+
+    return null;
+
+  }
+
+  return (
+
+    arr.reduce(
+      (a, b) => a + b,
+      0
+    )
+
+    / arr.length
+
+  );
+
+}
+
+// ======================
+// MIN
+// ======================
+function calculateMin(arr) {
+
+  return arr.length
+
+    ? Math.min(...arr)
+
+    : null;
+
+}
+
+// ======================
+// MAX
+// ======================
+function calculateMax(arr) {
+
+  return arr.length
+
+    ? Math.max(...arr)
+
+    : null;
+
+}
+
+// ======================
 // NEXT SUMMARY KEY
 // ======================
 async function getNextSummaryKey() {
@@ -449,12 +499,42 @@ app.get(
       // EXTRACT VALUES
       // ======================
       const rows =
-        batch.map(
+        batch
+            .map(
+              ([key, value]) =>
+                value
+    )
+    .filter(
 
-          ([key, value]) =>
-            value
+      row =>
 
-        );
+        row.finger === true &&
+
+        safeNumber(
+          row.avg_bpm
+        ) >= 40 &&
+
+        safeNumber(
+          row.avg_bpm
+        ) <= 180
+
+    );
+
+    if (
+  rows.length < 10
+) {
+
+  return res.json({
+
+    error:
+      "Not enough valid samples",
+
+    valid_samples:
+      rows.length
+
+  });
+
+}
 
       const bpmValues =
         rows
@@ -509,33 +589,63 @@ app.get(
       // ======================
       const summary = {
 
-        median_bpm:
-          calculateMedian(
-            bpmValues
-          ),
+  median_bpm:
+    calculateMedian(
+      bpmValues
+    ),
 
-        median_spo2:
-          calculateMedian(
-            spo2Values
-          ),
+  avg_bpm:
+    calculateAverage(
+      bpmValues
+    ),
 
-        median_glucose:
-          calculateMedian(
-            glucoseValues
-          ),
+  min_bpm:
+    calculateMin(
+      bpmValues
+    ),
 
-        median_temperature:
-          calculateMedian(
-            tempValues
-          ),
+  max_bpm:
+    calculateMax(
+      bpmValues
+    ),
 
-        sample_count:
-          rows.length,
+  median_spo2:
+    calculateMedian(
+      spo2Values
+    ),
 
-        timestamp:
-          Date.now()
+  avg_spo2:
+    calculateAverage(
+      spo2Values
+    ),
 
-      };
+  median_glucose:
+    calculateMedian(
+      glucoseValues
+    ),
+
+  avg_glucose:
+    calculateAverage(
+      glucoseValues
+    ),
+
+  median_temperature:
+    calculateMedian(
+      tempValues
+    ),
+
+  avg_temperature:
+    calculateAverage(
+      tempValues
+    ),
+
+  sample_count:
+    rows.length,
+
+  timestamp:
+    Date.now()
+
+};
 
       // ======================
       // NEXT DAY NUMBER
