@@ -220,34 +220,155 @@ function detectHealthAlert(data) {
 
   }
 
-  if (
+  // ======================
+  // FLAG KONDISI
+  // ======================
+
+  const bpmLow =
+    Number.isFinite(data.avg_bpm) &&
+    data.avg_bpm < 60;
+
+  const bpmHigh =
+    Number.isFinite(data.avg_bpm) &&
+    data.avg_bpm > 100;
+
+  const spo2Low =
     Number.isFinite(data.spo2) &&
-    data.spo2 < 90
-  ) {
+    data.spo2 < 95;
 
-    return "Saturasi oksigen terdeteksi rendah. Pastikan posisi sensor benar dan lakukan pengukuran ulang.";
+  const tempLow =
+    Number.isFinite(data.temperature) &&
+    data.temperature < 35.0;
+
+  const tempHigh =
+    Number.isFinite(data.temperature) &&
+    data.temperature > 37.5;
+
+  const glucoseLow =
+    Number.isFinite(data.glucose) &&
+    data.glucose < 70;
+
+  const glucoseHigh =
+    Number.isFinite(data.glucose) &&
+    data.glucose > 140;
+
+  // ======================
+  // HITUNG JUMLAH ALERT
+  // ======================
+
+  const abnormalCount = [
+
+    bpmLow,
+    bpmHigh,
+
+    spo2Low,
+
+    tempLow,
+    tempHigh,
+
+    glucoseLow,
+    glucoseHigh
+
+  ].filter(Boolean).length;
+
+  // ======================
+  // LEVEL 1
+  // MULTI PARAMETER
+  // ======================
+
+  if (abnormalCount >= 3) {
+
+    return "Beberapa parameter vital terdeteksi berada di luar rentang normal secara bersamaan. Hentikan aktivitas sementara, beristirahat pada lingkungan yang nyaman, dan lakukan pengukuran ulang untuk memastikan konsistensi hasil.";
 
   }
 
-  if (
-    Number.isFinite(data.avg_bpm) &&
-    data.avg_bpm > 100
-  ) {
+  // ======================
+  // LEVEL 2
+  // KOMBINASI PARAMETER
+  // ======================
 
-    return "Detak jantung berada di atas rentang normal. Disarankan beristirahat sebelum pengukuran ulang.";
+  if (bpmHigh && spo2Low) {
 
-  }
-
-  if (
-    Number.isFinite(data.avg_bpm) &&
-    data.avg_bpm < 60
-  ) {
-
-    return "Detak jantung berada di bawah rentang normal. Lakukan pengukuran ulang dalam kondisi rileks.";
+    return "Detak jantung meningkat disertai saturasi oksigen yang rendah. Hentikan aktivitas sementara, atur pernapasan secara perlahan, dan lakukan pengukuran ulang setelah kondisi lebih stabil.";
 
   }
 
-  return "Semua parameter berada dalam rentang normal.";
+  if (bpmHigh && tempHigh) {
+
+    return "Detak jantung dan suhu tubuh berada di atas rentang normal. Kurangi aktivitas fisik sementara, perbanyak konsumsi air putih, dan lakukan pemantauan berkala.";
+
+  }
+
+  if (glucoseHigh && bpmHigh) {
+
+    return "Estimasi kadar glukosa dan detak jantung berada di atas rentang normal. Istirahat sejenak, perhatikan pola makan, dan lakukan pengukuran ulang setelah beberapa waktu.";
+
+  }
+
+  if (spo2Low && tempHigh) {
+
+    return "Saturasi oksigen rendah disertai peningkatan suhu tubuh. Istirahat yang cukup dan lakukan pemantauan ulang secara berkala.";
+
+  }
+
+  if (glucoseHigh && tempHigh) {
+
+    return "Estimasi kadar glukosa dan suhu tubuh berada di atas rentang normal. Jaga hidrasi tubuh dan lakukan pemantauan ulang setelah beristirahat.";
+
+  }
+
+  // ======================
+  // LEVEL 3
+  // PARAMETER TUNGGAL
+  // ======================
+
+  if (bpmHigh) {
+
+    return "Detak jantung berada di atas rentang normal. Beristirahat selama beberapa menit dan lakukan pengukuran ulang dalam kondisi rileks.";
+
+  }
+
+  if (bpmLow) {
+
+    return "Detak jantung berada di bawah rentang normal. Lakukan pengukuran ulang dalam posisi duduk dan pastikan sensor terpasang dengan baik.";
+
+  }
+
+  if (spo2Low) {
+
+    return "Saturasi oksigen terdeteksi lebih rendah dari rentang normal. Periksa kembali posisi jari pada sensor dan lakukan pengukuran ulang setelah beberapa menit.";
+
+  }
+
+  if (tempHigh) {
+
+    return "Suhu tubuh terdeteksi lebih tinggi dari rentang normal. Istirahat yang cukup, konsumsi cairan yang memadai, dan lakukan pemantauan ulang secara berkala.";
+
+  }
+
+  if (tempLow) {
+
+    return "Suhu tubuh terdeteksi lebih rendah dari rentang normal. Pastikan pengukuran dilakukan pada kondisi lingkungan yang stabil dan ulangi pengukuran.";
+
+  }
+
+  if (glucoseHigh) {
+
+    return "Estimasi kadar glukosa berada di atas rentang referensi. Perhatikan pola konsumsi makanan dan lakukan pemantauan ulang secara berkala.";
+
+  }
+
+  if (glucoseLow) {
+
+    return "Estimasi kadar glukosa berada di bawah rentang referensi. Konsumsi makanan atau minuman yang mengandung karbohidrat dan lakukan pengukuran ulang.";
+
+  }
+
+  // ======================
+  // NORMAL
+  // ======================
+
+  return "Seluruh parameter vital berada dalam rentang yang diharapkan. Pertahankan pola hidup sehat dan lakukan pemantauan kesehatan secara berkala.";
 
 }
 

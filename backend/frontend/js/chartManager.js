@@ -5,7 +5,6 @@ const Chart = window.Chart;
 // ======================
 
 let bpmChart;
-let glucoseChart;
 let trendBPMChart;
 let trendSpO2Chart;
 let trendGlucoseChart;
@@ -92,88 +91,88 @@ export function updateBPMChart(
 
 }
 
-// ======================
-// INIT GLUCOSE CHART
-// ======================
-export function initGlucoseChart() {
+// // ======================
+// // INIT GLUCOSE CHART
+// // ======================
+// export function initGlucoseChart() {
 
-  const ctx =
-    document
-      .getElementById(
-        "glucoseChart"
-      )
-      .getContext("2d");
+//   const ctx =
+//     document
+//       .getElementById(
+//         "glucoseChart"
+//       )
+//       .getContext("2d");
 
-  glucoseChart = new Chart(ctx, {
+//   glucoseChart = new Chart(ctx, {
 
-    type: "line",
+//     type: "line",
 
-    data: {
+//     data: {
 
-      labels: [],
+//       labels: [],
 
-      datasets: [
+//       datasets: [
 
-        {
+//         {
 
-          label: "Glucose (mg/dL)",
+//           label: "Glucose (mg/dL)",
 
-          data: [],
+//           data: [],
 
-          borderWidth: 2,
+//           borderWidth: 2,
 
-          tension: 0.25
+//           tension: 0.25
 
-        }
+//         }
 
-      ]
+//       ]
 
-    },
+//     },
 
-    options: {
+//     options: {
 
-      responsive: true,
+//       responsive: true,
 
-      maintainAspectRatio: false,
+//       maintainAspectRatio: false,
 
-      animation: false
+//       animation: false
 
-    }
+//     }
 
-  });
+//   });
 
-}
+// }
 
-// ======================
-// UPDATE GLUCOSE CHART
-// ======================
-export function updateGlucoseChart(
-  value
-) {
+// // ======================
+// // UPDATE GLUCOSE CHART
+// // ======================
+// export function updateGlucoseChart(
+//   value
+// ) {
 
-  const t =
-    new Date()
-      .toLocaleTimeString();
+//   const t =
+//     new Date()
+//       .toLocaleTimeString();
 
-  glucoseChart.data.labels.push(t);
+//   glucoseChart.data.labels.push(t);
 
-  glucoseChart.data.datasets[0]
-    .data.push(value);
+//   glucoseChart.data.datasets[0]
+//     .data.push(value);
 
-  if (
-    glucoseChart.data.labels.length > 20
-  ) {
+//   if (
+//     glucoseChart.data.labels.length > 20
+//   ) {
 
-    glucoseChart.data.labels.shift();
+//     glucoseChart.data.labels.shift();
 
-    glucoseChart.data.datasets[0]
-      .data.shift();
+//     glucoseChart.data.datasets[0]
+//       .data.shift();
 
-  }
+//   }
 
-  glucoseChart.update();
+//   glucoseChart.update();
 
-}
+// }
 
 // ======================
 // INIT TRENDBPM CHART

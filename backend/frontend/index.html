@@ -469,25 +469,6 @@ async function getData() {
 
     updateAlert(data.alert);
 
-    // ======================
-// GLUCOSE CHART
-// ======================
-if (
-
-  data.glucose !== null &&
-
-  data.glucose !== undefined &&
-
-  !isNaN(data.glucose)
-
-) {
-
-  updateGlucoseChart(
-    Number(data.glucose)
-  );
-
-}
-
 // ======================
 // BPM CHART
 // ======================
